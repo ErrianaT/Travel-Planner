@@ -8,10 +8,10 @@
 using namespace std;
 
 
-void readFile(string& filename, BTree& tree) {
+void readFile(const string& filename, BTree& tree) {
     ifstream file(filename);
     if (!file.is_open()) {
-        cerr << "Error: Could not open file" << filename << endl;
+        cerr << "Error: Could not open file " << filename << endl;
         return;
     }
 
@@ -43,12 +43,25 @@ void readFile(string& filename, BTree& tree) {
         getline(ss, windDirection, ',');
         getline(ss, windSpeedStr, ',');
 
-        // converting precipitation and windspeed to floats
-        auto precipitation = static_cast<float>(stoi(precipitationStr));
-        auto windSpeed = static_cast<float>(stoi(windSpeedStr));
+        // Try converting precipitation and windspeed to floats
+        int precipitation = stoi(precipitationStr);
+        int windSpeed = stoi(windSpeedStr);
 
-        tree.insert(city, state, precipitation, windSpeed);
+        tree.insert(city, state, (float)precipitation, (float)windSpeed);
     }
 
     file.close();
+}
+
+int main() {
+    BTree btree(3);
+
+    try {
+        readFile("../data/weather.csv", btree);
+    } catch (const std::exception& e) {
+        std::cerr << "Error: " << e.what() << std::endl;
+    }
+
+    btree.traverse();
+    return 0;
 }
