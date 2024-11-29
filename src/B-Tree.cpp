@@ -34,38 +34,40 @@ void BTree::insertNonFullNode(BTreeNode *node, const string &city, const string 
 }
 
 void BTree::splitChild(BTreeNode* parent, int i, BTreeNode *child) {
-    // creating a new node to store d-1 keys of the full child
     BTreeNode* newNode = new BTreeNode(child->isLeaf);
-    for (int j = 0; j < d - 1; ++j) {
-        newNode->cities.push_back(child->cities[d+j]);
-        newNode->states.push_back(child->states[d+j]);
-        newNode->precipitations.push_back(child->precipitations[d+j]);
-        newNode->windSpeed.push_back(child->windSpeed[d+j]);
+
+    // moving second half to new node
+    for (int j = d; j < 2 * d - 1; ++j) {
+        newNode->cities.push_back(child->cities[j]);
+        newNode->states.push_back(child->states[j]);
+        newNode->precipitations.push_back(child->precipitations[j]);
+        newNode->windSpeed.push_back(child->windSpeed[j]);
     }
 
+    // moving children pointers if node is not a leaf
     if (!child->isLeaf) {
-        // moving other half of children to new node
-        for (int j = 0; j < d; ++j) {
-            newNode->cities.push_back(child->cities[d+j]);
+        for (int j = d; j < 2 * d; ++j) {
+            newNode->children.push_back(child->children[j]);
         }
-        child->children.resize(d);
     }
 
-    // reducing size of the full child node
-    child->cities.resize(d-1);
-    child->states.resize(d-1);
-    child->precipitations.resize(d-1);
-    child->windSpeed.resize(d-1);
+    // resizing
+    child->cities.resize(d - 1);
+    child->states.resize(d - 1);
+    child->precipitations.resize(d - 1);
+    child->windSpeed.resize(d - 1);
+    child->children.resize(d);  // Only resize if the child is not a leaf
 
-    // inserting a new child into parent
+    // inserting new node into parent
     parent->children.insert(parent->children.begin() + i + 1, newNode);
 
-    // moving middle key up to parent node
+    // moving middle key of child to parent node
     parent->cities.insert(parent->cities.begin() + i, child->cities[d - 1]);
     parent->states.insert(parent->states.begin() + i, child->states[d - 1]);
     parent->precipitations.insert(parent->precipitations.begin() + i, child->precipitations[d - 1]);
     parent->windSpeed.insert(parent->windSpeed.begin() + i, child->windSpeed[d - 1]);
 }
+
 
 void BTree::traverse() {
     traverseHelper(root);
