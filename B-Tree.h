@@ -1,5 +1,5 @@
 // Created by Erriana Thomas on 11/29/2024.
-// #2 TO DO: Create B-Tree class/methods and store appropriate data in tree
+// #1 TO DO: Create B-Tree class/methods and store appropriate data in tree
 
 #ifndef B_TREE_H
 #define B_TREE_H
