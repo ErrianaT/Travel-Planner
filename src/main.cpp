@@ -43,6 +43,8 @@ void readFile(const string& filename, BTree& tree) {
         getline(ss, windSpeedStr, ',');      // Data.Wind.Speed
 
         // removing quotation marks
+        city.erase(remove(city.begin(), city.end(), '"'), city.end());
+        state.erase(remove(state.begin(), state.end(), '"'), state.end());
         precipitationStr.erase(remove(precipitationStr.begin(), precipitationStr.end(), '"'), precipitationStr.end());
         windSpeedStr.erase(remove(windSpeedStr.begin(), windSpeedStr.end(), '"'), windSpeedStr.end());
 
@@ -65,7 +67,10 @@ int main() {
     } catch (const std::exception& e) {
         std::cerr << "Error: " << e.what() << std::endl;
     }
+    // btree.traverse();
+    string city;
+    cin >> city;
+    btree.searchCity(city);
 
-    btree.traverse();
     return 0;
 }

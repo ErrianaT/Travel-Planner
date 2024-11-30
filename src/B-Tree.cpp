@@ -82,8 +82,8 @@ void BTree::traverseHelper(BTreeNode *node) {
         if (!node->isLeaf) {
             traverseHelper(node->children[i]);
         }
-        cout << "City: " << node->cities[i] << ", State: " << node->states[i] << ", Precipitation: " <<
-            node->precipitations[i] << ", WindSpeed: " << node->windSpeed[i] << endl;
+        cout << node->cities[i] << ", " << node->states[i] << ", " << node->precipitations[i] << " inches, " <<
+            node->windSpeed[i] << " mph" << endl;
     }
     if(!node->isLeaf) { traverseHelper(node->children[node->cities.size()]); }
 }
@@ -111,5 +111,43 @@ void BTree::insert(const string &city, const string &state, float precipitation,
     }
 }
 
+bool BTree::searchByCity(BTreeNode* node, const string& city, string& state, float& precipitation, float& windSpeed) {
+    int i = 0;
 
+    // traversing cities in the current node
+    while (i < node->cities.size() && city > node->cities[i]) {
+        ++i;
+    }
 
+    // if we find the city at the current index, return the associated state, precipitation, and wind speed
+    if (i < node->cities.size() && city == node->cities[i]) {
+        state = node->states[i];
+        precipitation = node->precipitations[i];
+        windSpeed = node->windSpeed[i];
+        return true; // city was found
+    }
+
+    // if it's a leaf node, the city is not found
+    if (node->isLeaf) {
+        return false; // city not found
+    }
+
+    return searchByCity(node->children[i], city, state, precipitation, windSpeed);
+}
+
+bool BTree::searchCity(const string& city) {
+    string state;
+    float precipitation, windSpeed;
+
+    // calling search function recursively
+    if (searchByCity(root, city, state, precipitation, windSpeed)) {
+        cout << "City: " << city << ", State:" << state
+             << ", Precipitation: " << precipitation << " inches"
+             << ", WindSpeed: " << windSpeed << " mph" <<endl;
+        return true; // city was found
+    }
+
+    // if the city is not found
+    cout << "Location not found." << endl;
+    return false;
+}

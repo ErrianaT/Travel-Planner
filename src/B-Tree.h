@@ -28,9 +28,11 @@ private:
     void insertNonFullNode(BTreeNode* node, const string& city, const string& state, float precipitation, float windSpeed);
     void splitChild(BTreeNode* parent, int i, BTreeNode* child);
     void traverseHelper(BTreeNode* node);
+    bool searchByCity(BTreeNode* node, const string& city, string& state, float& precipitation, float& windSpeed);
 public:
     BTree(int minDegree);
     void insert(const string& city, const string& state, float precipitation, float windSpeed);
     void traverse();
+    bool searchCity(const string& city);
 
 };
