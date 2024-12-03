@@ -2,9 +2,11 @@
 #include <fstream>
 #include <sstream>
 #include <string>
+#include <SFML/Graphics.hpp>
 #include "B-Tree.h"
 #include <algorithm>
 using namespace std;
+using namespace sf;
 
 void readFile(const string& filename, BTree& tree) {
     ifstream file(filename);
@@ -33,7 +35,7 @@ void readFile(const string& filename, BTree& tree) {
         getline(ss, dateYear, ',');          // Date.Year
         getline(ss, city, ',');              // Station.City
         getline(ss, stationCode, ',');       // Station.Code
-        getline(ss, stationLocation, ',');   // Reading up to the closing quote
+        getline(ss, stationLocation, ',');   // Station.Location
         getline(ss, temp, ',');              // placeholder
         getline(ss, state, ',');             // Station.State
         getline(ss, avgTemp, ',');           // Data.Temperature.Avg Temp
@@ -60,17 +62,161 @@ void readFile(const string& filename, BTree& tree) {
 }
 
 int main() {
-    BTree btree(3);
+    int width = 800, height = 600;
+    RenderWindow window(VideoMode(width, height), "Travel Planner");
 
-    try {
-        readFile("../data/weather.csv", btree);
-    } catch (const std::exception& e) {
-        std::cerr << "Error: " << e.what() << std::endl;
+    // Loading the background image as a texture
+    Texture backgroundTexture;
+    if (!backgroundTexture.loadFromFile("../src/travelImage.png")) {  // Replace with the path to your image
+        std::cerr << "Error loading background image" << std::endl;
+        return -1;
     }
-    // btree.traverse();
-    string city;
-    cin >> city;
-    btree.searchCity(city);
 
+    Sprite backgroundSprite(backgroundTexture);
+    FloatRect textureRect = backgroundSprite.getLocalBounds();
+    backgroundSprite.setScale(
+        window.getSize().x / textureRect.width, // scale based on window width
+        window.getSize().y / textureRect.height // scale based on window height
+    );
+
+    // Loading font
+    Font font, inputFont;
+    if (!font.loadFromFile("../src/BRLNSB.TTF")) {
+        std::cerr << "Error loading BRLNSB font." << std::endl;
+        return -1;
+    }
+
+    if (!inputFont.loadFromFile("../src/BELL.TTF")) {
+        std::cerr << "Error loading BELL.ttf" << std::endl;
+        return -1;
+    }
+
+    // Creating labels for the text boxes
+    Text titleLabel("Travel Planner", font, 48);
+    titleLabel.setPosition(250, 100);
+    Text cityLabel("Enter City:", font, 24);
+    cityLabel.setFillColor(Color::White);
+    cityLabel.setPosition(200, 220);
+
+    Text dateLabel("Enter Date:", font, 24);
+    dateLabel.setFillColor(Color::White);
+    dateLabel.setPosition(200, 320);
+
+    // Text boxes
+    RectangleShape cityBox(Vector2f(300, 40));
+    cityBox.setFillColor(Color::White);
+    cityBox.setPosition(350, 220);
+
+    RectangleShape dateBox(Vector2f(300, 40));
+    dateBox.setFillColor(Color::White);
+    dateBox.setPosition(350, 320);
+
+    // Text to display user input
+    Text cityInputText("", inputFont, 24);
+    cityInputText.setFillColor(Color::Black);
+    cityInputText.setPosition(360, 225);
+
+    Text dateInputText("MM/DD", inputFont, 24);  // Set default text "Month/Year"
+    Color grey = Color(192, 192, 192);
+    dateInputText.setFillColor(grey);
+    dateInputText.setPosition(360, 325);
+
+    // Variables to track which box is active
+    bool cityActive = false;
+    bool dateActive = false;
+
+    // Storing user input
+    string cityInput;
+    string dateInput = "MM/DD";  // Initializing with the default text
+
+    // Blinking cursor
+    bool showCursor = true;
+    Clock cursorClock;
+    float cursorBlinkInterval = 0.5f;
+
+    while (window.isOpen()) {
+        Event event;
+        while (window.pollEvent(event)) {
+            if (event.type == Event::Closed) {
+                window.close();
+            }
+
+            if (event.type == Event::MouseButtonPressed) {
+                // Check if city box is clicked
+                if (cityBox.getGlobalBounds().contains(event.mouseButton.x, event.mouseButton.y)) {
+                    cityActive = true;
+                    dateActive = false;
+                }
+                // Check if date box is clicked
+                else if (dateBox.getGlobalBounds().contains(event.mouseButton.x, event.mouseButton.y)) {
+                    dateActive = true;
+                    cityActive = false;
+                    if (dateInput == "MM/DD") {
+                        dateInput = "";  // Clear default text when user clicks into the date box
+                    }
+                } else {
+                    cityActive = false;
+                    dateActive = false;
+                }
+            }
+
+            if (event.type == Event::TextEntered) {
+                if (cityActive) {
+                    if (event.text.unicode == '\b' && !cityInput.empty()) { // Handle backspace
+                        cityInput.pop_back();
+                    } else if (event.text.unicode < 128 && event.text.unicode != '\b') {
+                        cityInput += static_cast<char>(event.text.unicode);
+                    }
+                } else if (dateActive) {
+                    if (event.text.unicode == '\b' && !dateInput.empty()) { // Handle backspace
+                        dateInput.pop_back();
+                    } else if (event.text.unicode < 128 && event.text.unicode != '\b') {
+                        dateInput += static_cast<char>(event.text.unicode);
+                    }
+                }
+            }
+        }
+
+    // Updating text
+    cityInputText.setString(cityInput);
+    dateInputText.setString(dateInput);  // Update the date input text
+
+        // Cursor blinking
+        if (cursorClock.getElapsedTime().asSeconds() >= cursorBlinkInterval) {
+            showCursor = !showCursor;
+            cursorClock.restart();
+        }
+
+        // Clear the window
+        window.clear();
+        // Draw Background
+        window.draw(backgroundSprite);
+
+        // Draw the UI elements
+        window.draw(titleLabel);
+        window.draw(cityLabel);
+        window.draw(dateLabel);
+        window.draw(cityBox);
+        window.draw(dateBox);
+        window.draw(cityInputText);
+        window.draw(dateInputText);
+
+        // Draw the flashing cursor if active
+        if (cityActive && showCursor) {
+            RectangleShape cursor(Vector2f(2, 30));  // Cursor width and height
+            cursor.setFillColor(Color::Black);
+            cursor.setPosition(cityInputText.getPosition().x + cityInputText.getGlobalBounds().width, cityInputText.getPosition().y);
+            window.draw(cursor);
+        }
+        if (dateActive && showCursor) {
+            RectangleShape cursor(Vector2f(2, 30));  // Cursor width and height
+            cursor.setFillColor(Color::Black);
+            cursor.setPosition(dateInputText.getPosition().x + dateInputText.getGlobalBounds().width, dateInputText.getPosition().y);
+            window.draw(cursor);
+        }
+
+        // Display everything
+        window.display();
+    }
     return 0;
 }
