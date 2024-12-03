@@ -30,10 +30,10 @@ private:
     void splitChild(BTreeNode* parent, int i, BTreeNode* child);
     void traverseHelper(BTreeNode* node);
     string searchByCity(BTreeNode* node, const string& city);
+
 public:
     explicit BTree(int minDegree);
     void insert(const string& city, const string& state, float precipitation, float windSpeed, int temperature);
     void traverse();
     string searchCity(const string& city);
-
 };

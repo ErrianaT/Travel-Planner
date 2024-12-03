@@ -25,7 +25,6 @@ void readFile(const string& filename, BTree& tree) {
    while (getline(file, line)) {
        stringstream ss(line);
 
-
        // declaring variables for all columns
        string precipitationStr, dateFull, dateMonth, dateWeek, dateYear;
        string city, stationCode, stationLocation, state;

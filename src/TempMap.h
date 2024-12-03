@@ -1,6 +1,5 @@
 #ifndef TEMPMAP_H
 #define TEMPMAP_H
-
 #include <iostream>
 #include <vector>
 #include <tuple>

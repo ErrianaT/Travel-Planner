@@ -145,7 +145,6 @@ string BTree::searchByCity(BTreeNode* node, const string& city) {
     return searchByCity(node->children[i], city);
 }
 
-
 string BTree::searchCity(const string& city) {
     string result = searchByCity(root, city);
 
