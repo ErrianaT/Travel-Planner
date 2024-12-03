@@ -3,7 +3,7 @@
 #include <sstream>
 #include <string>
 #include "B-Tree.h"
-#include <algorithm>  // For std::remove and std::erase
+#include <algorithm>
 using namespace std;
 
 void readFile(const string& filename, BTree& tree) {
@@ -29,17 +29,17 @@ void readFile(const string& filename, BTree& tree) {
         getline(ss, precipitationStr, ',');  // Data.Precipitation
         getline(ss, dateFull, ',');          // Date.Full
         getline(ss, dateMonth, ',');         // Date.Month
-        getline(ss, dateWeek, ',');          // Date.Week of
+        getline(ss, dateWeek, ',');          // Date.Week
         getline(ss, dateYear, ',');          // Date.Year
         getline(ss, city, ',');              // Station.City
         getline(ss, stationCode, ',');       // Station.Code
-        getline(ss, stationLocation, ',');   // Station.Location
+        getline(ss, stationLocation, ',');   // Reading up to the closing quote
+        getline(ss, temp, ',');              // placeholder
         getline(ss, state, ',');             // Station.State
         getline(ss, avgTemp, ',');           // Data.Temperature.Avg Temp
         getline(ss, maxTemp, ',');           // Data.Temperature.Max Temp
         getline(ss, minTemp, ',');           // Data.Temperature.Min Temp
         getline(ss, windDirection, ',');     // Data.Wind.Direction
-        getline(ss, temp, ',');               // placeholder
         getline(ss, windSpeedStr, ',');      // Data.Wind.Speed
 
         // removing quotation marks
