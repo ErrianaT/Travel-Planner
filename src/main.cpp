@@ -125,57 +125,6 @@ void readFileMap(const std::string& filename, TempsMap& tempMap) {
     }
     file.close();
 }
-void readFileMap(const string& filename, TempsMap& tempMap) {
-    ifstream file(filename);
-    if (!file.is_open()) {
-        cerr << "Error: Could not open file " << filename << endl;
-        return;
-    }
-
-    string line;
-    // skipping the header line
-    getline(file, line);
-
-    while (getline(file, line)) {
-        stringstream ss(line);
-
-        // declaring variables for all columns
-        string precipitationStr, dateFull, dateMonth, dateWeek, dateYear;
-        string city, stationCode, stationLocation, state;
-        string avgTemp, maxTemp, minTemp, windDirection, temp, windSpeedStr;
-
-        // reading each value into corresponding variable
-        getline(ss, precipitationStr, ',');  // Data.Precipitation
-        getline(ss, dateFull, ',');          // Date.Full
-        getline(ss, dateMonth, ',');         // Date.Month
-        getline(ss, dateWeek, ',');          // Date.Week of
-        getline(ss, dateYear, ',');          // Date.Year
-        getline(ss, city, ',');              // Station.City
-        getline(ss, stationCode, ',');       // Station.Code
-        getline(ss, stationLocation, ',');   // Station.Location
-        getline(ss, state, ',');             // Station.State
-        getline(ss, avgTemp, ',');           // Data.Temperature.Avg Temp
-        getline(ss, maxTemp, ',');           // Data.Temperature.Max Temp
-        getline(ss, minTemp, ',');           // Data.Temperature.Min Temp
-        getline(ss, windDirection, ',');     // Data.Wind.Direction
-        getline(ss, temp, ',');               // placeholder
-        getline(ss, windSpeedStr, ',');      // Data.Wind.Speed
-
-        // removing quotation marks
-        city.erase(remove(city.begin(), city.end(), '"'), city.end());
-        state.erase(remove(state.begin(), state.end(), '"'), state.end());
-        precipitationStr.erase(remove(precipitationStr.begin(), precipitationStr.end(), '"'), precipitationStr.end());
-        windSpeedStr.erase(remove(windSpeedStr.begin(), windSpeedStr.end(), '"'), windSpeedStr.end());
-
-        int day = stoi(dateWeek);
-        int month = stoi(dateMonth);
-        int averageTemp = stoi(avgTemp);
-
-        tempMap.insert(city, tuple(day,month,averageTemp));
-
-    }
-    file.close();
-}
 
 int main() {
     sf::RenderWindow welcomewindow(sf::VideoMode(800, 700), "Travel Planner");
