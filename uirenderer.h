@@ -166,7 +166,7 @@ public:
         buttontext.setCharacterSize(charSize);
         buttontext.setFillColor(sf::Color::White);
         buttontext.setPosition(x +(width - buttontext.getGlobalBounds().width)/2,
-                               y+(height - buttontext.getGlobalBounds().height)/2);
+                               y+(height - buttontext.getGlobalBounds().height)/2-5);
         clicked = false;
     }
     //draw actual button
@@ -175,12 +175,21 @@ public:
         window.draw(buttontext);
     }
     //handle if its clicked
-    void onEvent(const sf::Event& event){
-        if(event.type == sf::Event::MouseButtonPressed){
-            if(button.getGlobalBounds().contains(event.mouseButton.x, event.mouseButton.y)){
-
+    void onEvent(const sf::Event& event, sf::RenderWindow& window) {
+        if (event.type == sf::Event::MouseButtonPressed &&
+            event.mouseButton.button == sf::Mouse::Left) {
+            // map mouse coordinates
+            sf::Vector2f mousePos = window.mapPixelToCoords(sf::Mouse::getPosition(window));
+            if (button.getGlobalBounds().contains(mousePos)) {
+                clicked = true;
             }
         }
+    }
+    bool isclicked() const{
+        return clicked;
+    }
+    void resetbutton(){
+        clicked = false;
     }
 
 };
