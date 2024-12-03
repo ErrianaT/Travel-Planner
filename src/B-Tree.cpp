@@ -147,6 +147,7 @@ bool BTree::searchCity(const string& city) {
         return true; // city was found
     }
 
+
     // if the city is not found
     cout << "Location not found." << endl;
     return false;

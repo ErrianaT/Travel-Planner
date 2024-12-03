@@ -215,6 +215,7 @@ int main() {
             window.draw(cursor);
         }
 
+
         // Display everything
         window.display();
     }
