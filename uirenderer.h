@@ -148,7 +148,7 @@ public:
 };
 
 //button renderer class
-class button{
+class clickbutton{
 private:
     sf::RectangleShape button;
     sf::Text buttontext;
@@ -156,7 +156,7 @@ private:
 
 public:
     // constructor
-    button(float x, float y, float width, float height, const sf::Font& font,
+    clickbutton(float x, float y, float width, float height, const sf::Font& font,
            const string& text, unsigned int charSize){
         button.setSize(sf::Vector2f(width, height));
         button.setFillColor(sf::Color::Blue);
