@@ -2,13 +2,75 @@
 #include <fstream>
 #include <sstream>
 #include <string>
-#include <SFML/Graphics.hpp>
 #include "B-Tree.h"
-#include <algorithm>
+#include <SFML/Graphics.hpp>
+#include "TempMap.h"
+#include "uiRenderer.h"
 using namespace std;
 using namespace sf;
 
 void readFile(const string& filename, BTree& tree) {
+   ifstream file(filename);
+   if (!file.is_open()) {
+       cerr << "Error: Could not open file " << filename << endl;
+       return;
+   }
+
+
+   string line;
+   // skipping the header line
+   getline(file, line);
+
+
+   while (getline(file, line)) {
+       stringstream ss(line);
+
+
+       // declaring variables for all columns
+       string precipitationStr, dateFull, dateMonth, dateWeek, dateYear;
+       string city, stationCode, stationLocation, state;
+       string avgTemp, maxTemp, minTemp, windDirection, temp, windSpeedStr;
+
+
+       // reading each value into corresponding variable
+       getline(ss, precipitationStr, ',');  // Data.Precipitation
+       getline(ss, dateFull, ',');          // Date.Full
+       getline(ss, dateMonth, ',');         // Date.Month
+       getline(ss, dateWeek, ',');          // Date.Week
+       getline(ss, dateYear, ',');          // Date.Year
+       getline(ss, city, ',');              // Station.City
+       getline(ss, stationCode, ',');       // Station.Code
+       getline(ss, stationLocation, ',');   // Station.Location
+       getline(ss, temp, ',');              // placeholder
+       getline(ss, state, ',');             // Station.State
+       getline(ss, avgTemp, ',');           // Data.Temperature.Avg Temp
+       getline(ss, maxTemp, ',');           // Data.Temperature.Max Temp
+       getline(ss, minTemp, ',');           // Data.Temperature.Min Temp
+       getline(ss, windDirection, ',');     // Data.Wind.Direction
+       getline(ss, windSpeedStr, ',');      // Data.Wind.Speed
+
+
+       // removing quotation marks
+       city.erase(remove(city.begin(), city.end(), '"'), city.end());
+       state.erase(remove(state.begin(), state.end(), '"'), state.end());
+       precipitationStr.erase(remove(precipitationStr.begin(), precipitationStr.end(), '"'), precipitationStr.end());
+       avgTemp.erase(remove(avgTemp.begin(), avgTemp.end(), '"'), avgTemp.end());
+       windSpeedStr.erase(remove(windSpeedStr.begin(), windSpeedStr.end(), '"'), windSpeedStr.end());
+
+       // converting precipitation and windspeed to floats
+       float precipitation = (stof(precipitationStr));
+       int avgtemp = (stoi(avgTemp));
+       float windSpeed = (stof(windSpeedStr));
+
+       // inserting into B tree
+       tree.insert(city, state, precipitation, windSpeed, avgtemp);
+   }
+
+
+   file.close();
+}
+
+void readFileMap(const std::string& filename, TempsMap& tempMap) {
     ifstream file(filename);
     if (!file.is_open()) {
         cerr << "Error: Could not open file " << filename << endl;
@@ -31,33 +93,37 @@ void readFile(const string& filename, BTree& tree) {
         getline(ss, precipitationStr, ',');  // Data.Precipitation
         getline(ss, dateFull, ',');          // Date.Full
         getline(ss, dateMonth, ',');         // Date.Month
-        getline(ss, dateWeek, ',');          // Date.Week
+        getline(ss, dateWeek, ',');          // Date.Week of
         getline(ss, dateYear, ',');          // Date.Year
         getline(ss, city, ',');              // Station.City
         getline(ss, stationCode, ',');       // Station.Code
         getline(ss, stationLocation, ',');   // Station.Location
-        getline(ss, temp, ',');              // placeholder
         getline(ss, state, ',');             // Station.State
         getline(ss, avgTemp, ',');           // Data.Temperature.Avg Temp
         getline(ss, maxTemp, ',');           // Data.Temperature.Max Temp
         getline(ss, minTemp, ',');           // Data.Temperature.Min Temp
         getline(ss, windDirection, ',');     // Data.Wind.Direction
+        getline(ss, temp, ',');               // placeholder
         getline(ss, windSpeedStr, ',');      // Data.Wind.Speed
 
         // removing quotation marks
         city.erase(remove(city.begin(), city.end(), '"'), city.end());
+        dateWeek.erase(remove(city.begin(), city.end(), '"'), city.end());
+        dateMonth.erase(remove(city.begin(), city.end(), '"'), city.end());
         state.erase(remove(state.begin(), state.end(), '"'), state.end());
         precipitationStr.erase(remove(precipitationStr.begin(), precipitationStr.end(), '"'), precipitationStr.end());
+        avgTemp.erase(remove(avgTemp.begin(), avgTemp.end(), '"'), avgTemp.end());
         windSpeedStr.erase(remove(windSpeedStr.begin(), windSpeedStr.end(), '"'), windSpeedStr.end());
 
-        // converting precipitation and windspeed to floats
-        float precipitation = (stof(precipitationStr));
-        float windSpeed = (stof(windSpeedStr));
+        int day = stoi(dateWeek);
+        int month = stoi(dateMonth);
+        int averageTemp = stoi(avgTemp);
 
-        // inserting into B tree
-        tree.insert(city, state, precipitation, windSpeed);
+
+        tempMap.insert(city, vector<tuple<int, int, int>>{make_tuple(day, month, averageTemp)});
+
+
     }
-
     file.close();
 }
 void readFileMap(const string& filename, TempsMap& tempMap) {
@@ -113,162 +179,133 @@ void readFileMap(const string& filename, TempsMap& tempMap) {
 }
 
 int main() {
-    int width = 800, height = 600;
-    RenderWindow window(VideoMode(width, height), "Travel Planner");
+    sf::RenderWindow welcomewindow(sf::VideoMode(800, 700), "Travel Planner");
 
-    // Loading the background image as a texture
-    Texture backgroundTexture;
-    if (!backgroundTexture.loadFromFile("../src/travelImage.png")) {  // Replace with the path to your image
-        std::cerr << "Error loading background image" << std::endl;
+    // Load fonts
+    sf::Font bold, bolditalic, regular;
+    if (!bold.loadFromFile("../src/NotoSans-Bold.ttf") ||
+        !bolditalic.loadFromFile("../src/NotoSans-BoldItalic.ttf") ||
+        !regular.loadFromFile("../src/NotoSans-Regular.ttf")) {
+        cerr << "Error loading font" << endl;
         return -1;
     }
 
-    Sprite backgroundSprite(backgroundTexture);
-    FloatRect textureRect = backgroundSprite.getLocalBounds();
-    backgroundSprite.setScale(
-        window.getSize().x / textureRect.width, // scale based on window width
-        window.getSize().y / textureRect.height // scale based on window height
-    );
+    // Create welcome texts
+    sf::Text welcometext = createText(bold, "Welcome to ", 48, sf::Color::White, 80, 100);
+    sf::Text boldwelc = createText(bolditalic, "Travel Planner", 48, sf::Color::Black, 375, 100);
+    sf::Text exclamation = createText(bolditalic, "!", 48, sf::Color::White, 710, 102);
+    sf::Text whenvisit = createText(regular, "When are you planning your visit?", 28, sf::Color::White, 180, 170);
+    sf::Text month = createText(regular, "Month: ", 23, sf::Color::White, 160, 230);
+    sf::Text day = createText(regular, "Day: ", 23, sf::Color::White, 430, 230);
+    sf::Text wherego = createText(regular, "Where would you like to go?", 28, sf::Color::White, 210, 300);
+    sf::Text city = createText(regular, "Enter a City:", 23, sf::Color::White, 120, 360);
 
-    // Loading font
-    Font font, inputFont;
-    if (!font.loadFromFile("../src/BRLNSB.TTF")) {
-        std::cerr << "Error loading BRLNSB font." << std::endl;
-        return -1;
-    }
+    // Creating textboxes
+    textbox citybox(260, 355, 400, 35, regular, 20);
+    textbox daybox(495, 228, 100, 30, regular, 20);
 
-    if (!inputFont.loadFromFile("../src/BELL.TTF")) {
-        std::cerr << "Error loading BELL.ttf" << std::endl;
-        return -1;
-    }
+    // Creating buttons
+    clickbutton startButton(300, 450, 200, 80, bold, "Start Planning", 20);
+    clickbutton returnButton(450, 450, 200, 80, bold, "Return to Start", 20); // Add the "Return to Start" button
 
-    // Creating labels for the text boxes
-    Text titleLabel("Travel Planner", font, 48);
-    titleLabel.setPosition(250, 100);
-    Text cityLabel("Enter City:", font, 24);
-    cityLabel.setFillColor(Color::White);
-    cityLabel.setPosition(200, 220);
+    // Dropdown for months
+    dropdown months(250, 228, 150, 30, regular,
+        {"January", "February", "March", "April", "May", "June", "July",
+         "August", "September", "October", "November", "December"}, 18);
 
-    Text dateLabel("Enter Date:", font, 24);
-    dateLabel.setFillColor(Color::White);
-    dateLabel.setPosition(200, 320);
+    bool navigateToNextPage = false;
 
-    // Text boxes
-    RectangleShape cityBox(Vector2f(300, 40));
-    cityBox.setFillColor(Color::White);
-    cityBox.setPosition(350, 220);
+    while (welcomewindow.isOpen()) {
+    sf::Event event;
+    while (welcomewindow.pollEvent(event)) {
+        if (event.type == sf::Event::Closed) {
+            welcomewindow.close();
+        }
 
-    RectangleShape dateBox(Vector2f(300, 40));
-    dateBox.setFillColor(Color::White);
-    dateBox.setPosition(350, 320);
-
-    // Text to display user input
-    Text cityInputText("", inputFont, 24);
-    cityInputText.setFillColor(Color::Black);
-    cityInputText.setPosition(360, 225);
-
-    Text dateInputText("MM/DD", inputFont, 24);  // Set default text "Month/Year"
-    Color grey = Color(192, 192, 192);
-    dateInputText.setFillColor(grey);
-    dateInputText.setPosition(360, 325);
-
-    // Variables to track which box is active
-    bool cityActive = false;
-    bool dateActive = false;
-
-    // Storing user input
-    string cityInput;
-    string dateInput = "MM/DD";  // Initializing with the default text
-
-    // Blinking cursor
-    bool showCursor = true;
-    Clock cursorClock;
-    float cursorBlinkInterval = 0.5f;
-
-    while (window.isOpen()) {
-        Event event;
-        while (window.pollEvent(event)) {
-            if (event.type == Event::Closed) {
-                window.close();
+        if (navigateToNextPage) {
+            // Handle returnButton interaction
+            if (returnButton.onEvent(event, welcomewindow)) {
+                navigateToNextPage = false; // Return to the welcome page
+                break; // Exit the event loop to redraw the welcome page
             }
+        } else {
+            // Handle interactions on the welcome page
+            months.onEvent(event);
+            daybox.onEvent(event);
+            citybox.onEvent(event);
 
-            if (event.type == Event::MouseButtonPressed) {
-                // Check if city box is clicked
-                if (cityBox.getGlobalBounds().contains(event.mouseButton.x, event.mouseButton.y)) {
-                    cityActive = true;
-                    dateActive = false;
-                }
-                // Check if date box is clicked
-                else if (dateBox.getGlobalBounds().contains(event.mouseButton.x, event.mouseButton.y)) {
-                    dateActive = true;
-                    cityActive = false;
-                    if (dateInput == "MM/DD") {
-                        dateInput = "";  // Clear default text when user clicks into the date box
-                    }
-                } else {
-                    cityActive = false;
-                    dateActive = false;
-                }
-            }
-
-            if (event.type == Event::TextEntered) {
-                if (cityActive) {
-                    if (event.text.unicode == '\b' && !cityInput.empty()) { // Handle backspace
-                        cityInput.pop_back();
-                    } else if (event.text.unicode < 128 && event.text.unicode != '\b') {
-                        cityInput += static_cast<char>(event.text.unicode);
-                    }
-                } else if (dateActive) {
-                    if (event.text.unicode == '\b' && !dateInput.empty()) { // Handle backspace
-                        dateInput.pop_back();
-                    } else if (event.text.unicode < 128 && event.text.unicode != '\b') {
-                        dateInput += static_cast<char>(event.text.unicode);
-                    }
-                }
+            if (startButton.onEvent(event, welcomewindow)) {
+                navigateToNextPage = true;
             }
         }
-
-    // Updating text
-    cityInputText.setString(cityInput);
-    dateInputText.setString(dateInput);  // Update the date input text
-
-        // Cursor blinking
-        if (cursorClock.getElapsedTime().asSeconds() >= cursorBlinkInterval) {
-            showCursor = !showCursor;
-            cursorClock.restart();
-        }
-
-        // Clear the window
-        window.clear();
-        // Draw Background
-        window.draw(backgroundSprite);
-
-        // Draw the UI elements
-        window.draw(titleLabel);
-        window.draw(cityLabel);
-        window.draw(dateLabel);
-        window.draw(cityBox);
-        window.draw(dateBox);
-        window.draw(cityInputText);
-        window.draw(dateInputText);
-
-        // Draw the flashing cursor if active
-        if (cityActive && showCursor) {
-            RectangleShape cursor(Vector2f(2, 30));  // Cursor width and height
-            cursor.setFillColor(Color::Black);
-            cursor.setPosition(cityInputText.getPosition().x + cityInputText.getGlobalBounds().width, cityInputText.getPosition().y);
-            window.draw(cursor);
-        }
-        if (dateActive && showCursor) {
-            RectangleShape cursor(Vector2f(2, 30));  // Cursor width and height
-            cursor.setFillColor(Color::Black);
-            cursor.setPosition(dateInputText.getPosition().x + dateInputText.getGlobalBounds().width, dateInputText.getPosition().y);
-            window.draw(cursor);
-        }
-
-
-        // Display everything
-        window.display();
     }
+
+    // Rendering logic
+    if (navigateToNextPage) {
+        // Draw the second page
+        welcomewindow.clear(sf::Color(50, 50, 50));
+
+        // Background
+        Texture backgroundTexture;
+        if (!backgroundTexture.loadFromFile("../src/ResultsPage.png")) {
+            std::cerr << "Error loading background image" << std::endl;
+            return -1;
+        }
+        Sprite backgroundSprite(backgroundTexture);
+        FloatRect textureRect = backgroundSprite.getLocalBounds();
+        backgroundSprite.setScale(
+            welcomewindow.getSize().x / textureRect.width,
+            welcomewindow.getSize().y / textureRect.height
+        );
+        welcomewindow.draw(backgroundSprite);
+
+        // Getting user input
+        string chosenCity = citybox.getInput();
+
+        // Initializing B Tree and attempting to read data file
+        BTree btree(3);
+        try {
+            readFile("../data/weather.csv", btree);
+        } catch (const std::exception& e) {
+            std::cerr << "Error: " << e.what() << std::endl;
+        }
+        string resultData = btree.searchCity(chosenCity);
+
+        // Draw results text
+        Text resultsPageText = createText(bold, "Prepare for these conditions", 36, sf::Color::Black, 160, 80);
+        Text data = createText(regular, resultData, 32, sf::Color::White, 280, 180);
+        welcomewindow.draw(resultsPageText);
+        welcomewindow.draw(data);
+
+        // Draw return button
+        returnButton.draw(welcomewindow);
+        welcomewindow.display();
+    } else {
+        // Draw the welcome page
+        welcomewindow.clear(sf::Color(130, 220, 155));
+        welcomewindow.draw(welcometext);
+        welcomewindow.draw(boldwelc);
+        welcomewindow.draw(exclamation);
+        welcomewindow.draw(whenvisit);
+        welcomewindow.draw(month);
+        welcomewindow.draw(day);
+        welcomewindow.draw(wherego);
+        welcomewindow.draw(city);
+
+        // Draw textboxes
+        citybox.draw(welcomewindow);
+        daybox.draw(welcomewindow);
+
+        // Draw buttons
+        startButton.draw(welcomewindow);
+
+        // Draw dropdown
+        months.draw(welcomewindow);
+
+        welcomewindow.display();
+    }
+}
+
+
     return 0;
 }
