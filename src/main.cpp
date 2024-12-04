@@ -164,6 +164,7 @@ int main() {
 
     bool navigateToNextPage = false;
 
+   // while loop to keep track of the welcome window and events on that page
     while (welcomewindow.isOpen()) {
     sf::Event event;
     while (welcomewindow.pollEvent(event)) {
