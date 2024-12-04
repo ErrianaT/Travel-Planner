@@ -154,7 +154,7 @@ public:
 };
 
 
-//button renderer class
+//class to make button that causes change when clicked
 class clickbutton {
 private:
     sf::RectangleShape button;
@@ -164,7 +164,7 @@ private:
     sf::Color hoverColor;
 
 public:
-    // Constructor
+    // constructor that defines all default settings
     clickbutton(float x, float y, float width, float height, const sf::Font& font,
         const string& text, unsigned int charSize)
         : normalColor(sf::Color::Blue), hoverColor(sf::Color::Cyan) {
@@ -180,13 +180,13 @@ public:
         clicked = false;
     }
 
-    // Draw button
+    // actually drawing the button
     void draw(sf::RenderWindow& window) {
         window.draw(button);
         window.draw(buttontext);
     }
 
-    // Handle events
+    // handle the button being clicked
     bool onEvent(const sf::Event& event, const sf::RenderWindow& window) {
         sf::Vector2i mousePos = sf::Mouse::getPosition(window);
         if (button.getGlobalBounds().contains(static_cast<float>(mousePos.x), static_cast<float>(mousePos.y))) {
@@ -194,7 +194,8 @@ public:
 
             if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left) {
                 clicked = true;
-                return true; // Button was clicked
+                // make clicked true if button is clicked
+                return true;  
             }
         } else {
             button.setFillColor(normalColor);
