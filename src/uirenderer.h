@@ -45,7 +45,7 @@ public:
         window.draw(box);
         window.draw(text);
     }
-    // make function for box being used
+    // make function for the box being used
     void onEvent(const sf::Event& event){
         if(event.type == sf::Event::MouseButtonPressed){
             //checks if clicked
@@ -58,7 +58,7 @@ public:
                 box.setOutlineColor(sf::Color::Black);
             }
         }
-        // get text input if theyre typing
+        // get text input if the user is typing
         if(typing && event.type ==sf::Event::TextEntered){
             //backspace
             if(event.text.unicode == '\b'){
@@ -76,6 +76,7 @@ public:
     const string& getInput() const{return input;}
 };
 
+// make class to create dropdown menu
 class dropdown{
 private:
     sf::RectangleShape button;
@@ -85,6 +86,7 @@ private:
     bool listed;
 
 public:
+    // constructor
     dropdown(float x, float y, float width, float height, sf::Font& font,
          const vector<string>& options, unsigned int charSize)
     : listed(false) { // Initialize listed to false
@@ -99,6 +101,7 @@ public:
         buttonText.setString(options[0]);
         buttonText.setPosition(x + 10, y + (height - charSize) / 2);
 
+        // make text specs for all the options
         for (size_t i = 0; i < options.size(); ++i) {
             sf::Text option;
             option.setFont(font);
@@ -116,6 +119,7 @@ public:
         window.draw(button);
         window.draw(buttonText);
 
+        // if the button is clicked, show the options
         if(listed){
             window.draw(optionbox);
             for(const auto& option : list){
@@ -123,7 +127,7 @@ public:
             }
         }
     }
-    // handle dropdown being used
+    // handle dropdown being used and options clicked
     void onEvent(const sf::Event& event){
         if(event.type == sf::Event::MouseButtonPressed){
             // if clicked
