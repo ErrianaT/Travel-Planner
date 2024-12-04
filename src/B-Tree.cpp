@@ -138,10 +138,9 @@ string BTree::searchByCity(BTreeNode* node, const string& city) {
 
     // If it's a leaf node, the city is not found
     if (node->isLeaf) {
-        return ""; // Empty string indicates city not found
+        return ""; 
     }
 
-    // Recur on the appropriate child
     return searchByCity(node->children[i], city);
 }
 
@@ -152,5 +151,5 @@ string BTree::searchCity(const string& city) {
         return result;
     }
 
-    return "Location is not available."; // City not found
+    return "Location is not available.";
 }
