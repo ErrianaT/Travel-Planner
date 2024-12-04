@@ -148,7 +148,8 @@ int main() {
     sf::Text wherego = createText(regular, "Where would you like to go?", 28, sf::Color::White, 210, 300);
     sf::Text city = createText(regular, "Enter a City:", 23, sf::Color::White, 120, 360);
 
-    // Creating textboxes
+    // Creating textboxes the users can type in 
+   // allows them to enter the city name and the day of the month
     textbox citybox(260, 355, 400, 35, regular, 20);
     textbox daybox(495, 228, 100, 30, regular, 20);
 
